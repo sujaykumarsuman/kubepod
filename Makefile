@@ -30,7 +30,12 @@ go-build: build-dir-exist
 	@go build -o build/$(IMAGE_NAME) main.go
 .PHONY: go-build
 
-helm-package: build-dir-exist
+update-tag-in-values:
+	@sed -i.bak 's@tag:.*@tag: $(IMAGE_VERSION)@g' ./helm/$(IMAGE_NAME)/values.yaml
+	@rm -f ./helm/$(IMAGE_NAME)/values.yaml.bak
+.PHONY: update-tag-in-values
+
+helm-package: build-dir-exist update-tag-in-values
 	@helm package ./helm/$(IMAGE_NAME) --destination ./build --version $(CHART_VERSION)
 .PHONE: helm-package
 
@@ -47,7 +52,6 @@ helm-uninstall:
 .PHONE: helm-uninstall
 
 cleanup:
-	@rm -f $(IMAGE_NAME)
-	@docker rmi $(REPOSITORY)/$(IMAGE_NAME):$(IMAGE_VERSION)
 	@rm -rf build
+	@docker rmi -f $(REPOSITORY)/$(IMAGE_NAME):$(IMAGE_VERSION)
 .PHONY: cleanup
