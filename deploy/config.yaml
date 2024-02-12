@@ -1,0 +1,15 @@
+# app config
+app:
+  id: kubepod
+config:
+  file: "config"
+  secret:
+    file: ""
+  source: deploy/
+
+# aws config
+eks:
+  cluster:
+    name: ddi-dev-use1
+aws:
+  region: us-east-1
