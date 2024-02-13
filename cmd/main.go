@@ -88,10 +88,6 @@ func main() {
 		logger.Debug("Configuration", zap.String("key", key), zap.Any("value", viper.Get(key)))
 	}
 
-	kp := kubepod.NewKubepod(ctx, logger, viper.GetString("cluster.name"))
-	if kp == nil {
-		logger.Fatal("cannot create kubepod")
-		return
-	}
+	kp := kubepod.NewKubepod(ctx, logger, viper.GetString("eks.cluster.name"))
 	kp.GetNodes()
 }

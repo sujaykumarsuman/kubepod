@@ -3,9 +3,11 @@ package kubepod
 import (
 	"context"
 	"encoding/base64"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -50,13 +52,18 @@ func newClientset(log *zap.Logger, cluster *types.Cluster) (*kubernetes.Clientse
 	return clientset, nil
 }
 
+func printConfig(logger *zap.Logger, cfg aws.Config) {
+	logger.Debug("cfg.region", zap.String("region", cfg.Region))
+	logger.Debug("cfg.credentials", zap.Any("credentials", cfg.Credentials))
+}
+
 func NewKubepod(ctx context.Context, logger *zap.Logger, clusterName string) *Kubepod {
-	cfg, err := awsconfig.LoadDefaultConfig(ctx)
+	cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(viper.GetString("aws.region")))
 	if err != nil {
 		logger.Fatal("unable to load SDK config", zap.Error(err))
 		return nil
 	}
-
+	printConfig(logger, cfg)
 	eksClient := eks.NewFromConfig(cfg)
 	clusterDescription, err := eksClient.DescribeCluster(ctx, &eks.DescribeClusterInput{Name: &clusterName})
 	if err != nil {
