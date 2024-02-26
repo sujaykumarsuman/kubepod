@@ -27,6 +27,7 @@ const (
 	// AWS
 	defaultAWSRegion   = "us-east-1"
 	defaultClusterName = "ddi-dev-use1"
+	defaultBiabARN     = "arn:aws:iam::123456789012:role/biab-eks-access"
 )
 
 var (
@@ -56,6 +57,7 @@ func initializeFlags() {
 	// AWS
 	_ = pflag.String("aws.region", defaultAWSRegion, "AWS region")
 	_ = pflag.String("eks.cluster.name", defaultClusterName, "name of the EKS cluster")
+	_ = pflag.String("aws.arn", defaultBiabARN, "ARN of the BIAB role")
 
 	pflag.Parse()
 }
@@ -99,7 +101,7 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
-	kp := kubepod.NewKubepod(ctx, logger, viper.GetString("eks.cluster.name"))
+	kp := kubepod.NewKubepod(ctx, logger, viper.GetString("aws.arn"), viper.GetString("eks.cluster.name"))
 	if kp == nil {
 		logger.Fatal("unable to create kubepod")
 		return

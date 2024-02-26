@@ -5,8 +5,10 @@ import (
 	"encoding/base64"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
@@ -64,13 +66,21 @@ func printConfig(logger *zap.Logger, cfg aws.Config) {
 	logger.Debug("cfg.credentials", zap.Any("credentials", cfg.Credentials))
 }
 
-func NewKubepod(ctx context.Context, logger *zap.Logger, clusterName string) *Kubepod {
+func NewKubepod(ctx context.Context, logger *zap.Logger, arn, clusterName string) *Kubepod {
 	cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(viper.GetString("aws.region")))
 	if err != nil {
 		logger.Fatal("unable to load SDK config", zap.Error(err))
 		return nil
 	}
 	printConfig(logger, cfg)
+	stsSvc := sts.NewFromConfig(cfg)
+	creds := stscreds.NewAssumeRoleProvider(stsSvc, arn)
+	if err != nil {
+		logger.Fatal("unable to assume role", zap.Error(err))
+		return nil
+	}
+	cfg.Credentials = aws.NewCredentialsCache(creds)
+
 	eksClient := eks.NewFromConfig(cfg)
 	clusterDescription, err := eksClient.DescribeCluster(ctx, &eks.DescribeClusterInput{Name: &clusterName})
 	if err != nil {

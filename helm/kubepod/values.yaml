@@ -5,10 +5,10 @@
 replicaCount: 1
 
 image:
-  repository: kubepod
+  repository: sujaykumarsuman/kubepod
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: v1.2.0-im-555069e
+  tag: v1.2.0-im-f3e14a2
 
 imagePullSecrets: []
 nameOverride: ""
@@ -17,14 +17,15 @@ namespace: "kubepod"
 
 aws:
   region: "us-east-1"
+  arn: "arn:aws:iam::123456789012:role/eks-access-role"
 eksConfig:
-  clusterName: "eks-cluster"
+  clusterName: "ddi-dev-use1"
 logLevel: "debug"
 
 serviceAccount:
-  create: true
+  create: false
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::123456789102:role/eks-access-role
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/eks-access-role
   name: ""
 
 podAnnotations: {}
