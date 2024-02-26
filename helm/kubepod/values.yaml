@@ -8,7 +8,7 @@ image:
   repository: kubepod
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: v1.0.0-im-c062946
+  tag: v1.2.0-im-555069e
 
 imagePullSecrets: []
 nameOverride: ""
@@ -18,13 +18,13 @@ namespace: "kubepod"
 aws:
   region: "us-east-1"
 eksConfig:
-  clusterName: "ddi-dev-use1"
+  clusterName: "eks-cluster"
 logLevel: "debug"
 
 serviceAccount:
   create: true
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::12345678901:role/eks-access-role
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789102:role/eks-access-role
   name: ""
 
 podAnnotations: {}

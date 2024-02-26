@@ -1,8 +1,8 @@
 DOCKER_REGISTRY ?= docker.io
 REPOSITORY ?= sujaykumarsuman
 IMAGE_NAME ?= kubepod
-IMAGE_VERSION ?= v1.0.0-im-$(shell git rev-parse --short HEAD)
-CHART_VERSION ?= v1.0.0-hc-$(shell git rev-parse --short HEAD)
+IMAGE_VERSION ?= v1.2.0-im-$(shell git rev-parse --short HEAD)
+CHART_VERSION ?= v1.2.0-hc-$(shell git rev-parse --short HEAD)
 
 
 docker-image-exists:
@@ -26,7 +26,11 @@ build-dir-exist:
 	@mkdir -p build
 .PHONY: build-dir-exist
 
-go-build: build-dir-exist
+mod-vendor:
+	@go mod tidy
+	@go mod vendor
+
+go-build: build-dir-exist mod-vendor
 	@go build -o build/$(IMAGE_NAME) main.go
 .PHONY: go-build
 

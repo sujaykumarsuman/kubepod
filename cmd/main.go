@@ -5,18 +5,23 @@ import (
 	"fmt"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/sujaykumarsuman/kubepod/pkg/api"
 	"github.com/sujaykumarsuman/kubepod/pkg/kubepod"
 	"go.uber.org/zap"
+	"net/http"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 )
 
 const (
 	// App
 	defaultConfigDirectory = "deploy/"
 	defaultConfigFile      = ""
-	defaultSecretFile      = ""
 	defaultApplicationID   = "kubepod"
 	defaultLogLevel        = "info"
+	addr                   = ":8080"
 
 	// AWS
 	defaultAWSRegion   = "us-east-1"
@@ -42,7 +47,6 @@ func initializeFlags() {
 	// App
 	_ = pflag.String("config.source", defaultConfigDirectory, "config source")
 	_ = pflag.String("config.file", defaultConfigFile, "directory of the configuration file")
-	_ = pflag.String("config.secret.file", defaultSecretFile, "directory of the secrets configuration file")
 	_ = pflag.String("app.id", defaultApplicationID, "identifier for the application")
 	_ = pflag.String("log-level", defaultLogLevel, "log level (debug, info, warn, error, dpanic, panic, fatal)")
 
@@ -88,6 +92,27 @@ func main() {
 		logger.Debug("Configuration", zap.String("key", key), zap.Any("value", viper.Get(key)))
 	}
 
+	// gracefully exit on keyboard interrupt
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
 	kp := kubepod.NewKubepod(ctx, logger, viper.GetString("eks.cluster.name"))
-	kp.GetNodes()
+	if kp == nil {
+		logger.Fatal("unable to create kubepod")
+		return
+	}
+
+	// start the api server
+	r := api.GetRouter(logger, kp)
+	go func() {
+		if err := http.ListenAndServe(addr, r); err != nil {
+			logger.Error("failed to start server", zap.Error(err))
+			os.Exit(1)
+		}
+	}()
+
+	logger.Info("ready to serve requests on " + addr)
+	<-c
+	logger.Info("gracefully shutting down")
+	os.Exit(0)
 }

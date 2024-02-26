@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/aws-iam-authenticator/pkg/token"
@@ -18,6 +18,13 @@ import (
 type Kubepod struct {
 	*kubernetes.Clientset
 	logger *zap.Logger
+}
+
+type Interface interface {
+	GetNodes() (*v1.NodeList, error)
+	GetNode(name string) (*v1.Node, error)
+	GetPods(namespace string) (*v1.PodList, error)
+	GetPod(name, namespace string) (*v1.Pod, error)
 }
 
 func newClientset(log *zap.Logger, cluster *types.Cluster) (*kubernetes.Clientset, error) {
@@ -78,26 +85,4 @@ func NewKubepod(ctx context.Context, logger *zap.Logger, clusterName string) *Ku
 	}
 
 	return &Kubepod{clientset, logger}
-}
-
-func (k *Kubepod) GetPods(namespace string) {
-	pods, err := k.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{})
-	if err != nil {
-		k.logger.Fatal("unable to list pods", zap.Error(err))
-		return
-	}
-	for _, pod := range pods.Items {
-		k.logger.Info("pod", zap.String("name", pod.Name))
-	}
-}
-
-func (k *Kubepod) GetNodes() {
-	nodes, err := k.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
-	if err != nil {
-		k.logger.Fatal("unable to list nodes", zap.Error(err))
-		return
-	}
-	for _, node := range nodes.Items {
-		k.logger.Info("node", zap.String("name", node.Name))
-	}
 }
