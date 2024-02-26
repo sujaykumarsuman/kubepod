@@ -21,7 +21,8 @@ const (
 	defaultConfigFile      = ""
 	defaultApplicationID   = "kubepod"
 	defaultLogLevel        = "info"
-	addr                   = ":8080"
+	defaultHost            = ""
+	defaultPort            = "8080"
 
 	// AWS
 	defaultAWSRegion   = "us-east-1"
@@ -49,6 +50,8 @@ func initializeFlags() {
 	_ = pflag.String("config.file", defaultConfigFile, "directory of the configuration file")
 	_ = pflag.String("app.id", defaultApplicationID, "identifier for the application")
 	_ = pflag.String("log-level", defaultLogLevel, "log level (debug, info, warn, error, dpanic, panic, fatal)")
+	_ = pflag.String("host", defaultHost, "address to serve requests")
+	_ = pflag.String("port", defaultPort, "port to serve requests")
 
 	// AWS
 	_ = pflag.String("aws.region", defaultAWSRegion, "AWS region")
@@ -103,6 +106,7 @@ func main() {
 	}
 
 	// start the api server
+	addr := viper.GetString("host") + ":" + viper.GetString("port")
 	r := api.GetRouter(logger, kp)
 	go func() {
 		if err := http.ListenAndServe(addr, r); err != nil {
