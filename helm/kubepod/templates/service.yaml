@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubepod-service
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+      app: kubepod-service
+spec:
+  selector:
+    {{- include "kubepod.selectorLabels" . | nindent 4 }}
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: {{ .Values.app.port | default 8080 }}
+    name: http
+  type: NodePort

@@ -39,4 +39,6 @@ spec:
           args:
             - "--eks.cluster.name={{ .Values.eksConfig.clusterName }}"
             - "--aws.region={{ .Values.aws.region }}"
+            - "--aws.arn={{ .Values.aws.arn }}"
             - "--log-level={{ .Values.logLevel }}"
+            - "--port={{ .Values.app.port }}"

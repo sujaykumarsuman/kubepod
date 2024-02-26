@@ -19,7 +19,8 @@ import (
 
 type Kubepod struct {
 	*kubernetes.Clientset
-	logger *zap.Logger
+	cluster *types.Cluster
+	logger  *zap.Logger
 }
 
 type Interface interface {
@@ -94,5 +95,5 @@ func NewKubepod(ctx context.Context, logger *zap.Logger, arn, clusterName string
 		return nil
 	}
 
-	return &Kubepod{clientset, logger}
+	return &Kubepod{clientset, clusterDescription.Cluster, logger}
 }

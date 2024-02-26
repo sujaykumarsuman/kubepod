@@ -8,12 +8,15 @@ image:
   repository: sujaykumarsuman/kubepod
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: v1.2.0-im-f3e14a2
+  tag: v1.2.0-im-93efd57
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 namespace: "kubepod"
+
+app:
+  port: 8217
 
 aws:
   region: "us-east-1"

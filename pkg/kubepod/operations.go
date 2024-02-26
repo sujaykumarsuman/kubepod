@@ -10,6 +10,9 @@ import (
 func (k *Kubepod) GetNodes() (*v1.NodeList, error) {
 	nodes, err := k.CoreV1().Nodes().List(context.Background(), metaV1.ListOptions{})
 	if err != nil {
+		k.logger.Debug("error listing nodes with kubepod",
+			zap.Any("kubepod", k.Clientset),
+			zap.Any("cluster", k.cluster))
 		k.logger.Fatal("unable to list nodes", zap.Error(err))
 		return nil, err
 	}
@@ -22,6 +25,9 @@ func (k *Kubepod) GetNodes() (*v1.NodeList, error) {
 func (k *Kubepod) GetNode(name string) (*v1.Node, error) {
 	node, err := k.CoreV1().Nodes().Get(context.Background(), name, metaV1.GetOptions{})
 	if err != nil {
+		k.logger.Debug("error getting node with kubepod",
+			zap.Any("kubepod", k.Clientset),
+			zap.Any("cluster", k.cluster))
 		k.logger.Fatal("unable to get node", zap.Error(err))
 		return nil, err
 	}
@@ -32,6 +38,9 @@ func (k *Kubepod) GetNode(name string) (*v1.Node, error) {
 func (k *Kubepod) GetPods(namespace string) (*v1.PodList, error) {
 	pods, err := k.CoreV1().Pods(namespace).List(context.Background(), metaV1.ListOptions{})
 	if err != nil {
+		k.logger.Debug("error listing pods with kubepod",
+			zap.Any("kubepod", k.Clientset),
+			zap.Any("cluster", k.cluster))
 		k.logger.Fatal("unable to list pods", zap.Error(err))
 		return nil, err
 	}
@@ -44,6 +53,9 @@ func (k *Kubepod) GetPods(namespace string) (*v1.PodList, error) {
 func (k *Kubepod) GetPod(name, namespace string) (*v1.Pod, error) {
 	pod, err := k.CoreV1().Pods(namespace).Get(context.Background(), name, metaV1.GetOptions{})
 	if err != nil {
+		k.logger.Debug("error getting pod with kubepod",
+			zap.Any("kubepod", k.Clientset),
+			zap.Any("cluster", k.cluster))
 		k.logger.Fatal("unable to get pod", zap.Error(err))
 		return nil, err
 	}
