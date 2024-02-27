@@ -13,7 +13,7 @@ func (k *Kubepod) GetNodes() (*v1.NodeList, error) {
 		k.logger.Debug("error listing nodes with kubepod",
 			zap.Any("kubepod", k.Clientset),
 			zap.Any("cluster", k.cluster))
-		k.logger.Fatal("unable to list nodes", zap.Error(err))
+		k.logger.Error("unable to list nodes", zap.Error(err))
 		return nil, err
 	}
 	for _, node := range nodes.Items {
@@ -28,7 +28,7 @@ func (k *Kubepod) GetNode(name string) (*v1.Node, error) {
 		k.logger.Debug("error getting node with kubepod",
 			zap.Any("kubepod", k.Clientset),
 			zap.Any("cluster", k.cluster))
-		k.logger.Fatal("unable to get node", zap.Error(err))
+		k.logger.Error("unable to get node", zap.Error(err))
 		return nil, err
 	}
 	k.logger.Info("node", zap.String("name", node.Name))
@@ -41,7 +41,7 @@ func (k *Kubepod) GetPods(namespace string) (*v1.PodList, error) {
 		k.logger.Debug("error listing pods with kubepod",
 			zap.Any("kubepod", k.Clientset),
 			zap.Any("cluster", k.cluster))
-		k.logger.Fatal("unable to list pods", zap.Error(err))
+		k.logger.Error("unable to list pods", zap.Error(err))
 		return nil, err
 	}
 	for _, pod := range pods.Items {
@@ -56,9 +56,14 @@ func (k *Kubepod) GetPod(name, namespace string) (*v1.Pod, error) {
 		k.logger.Debug("error getting pod with kubepod",
 			zap.Any("kubepod", k.Clientset),
 			zap.Any("cluster", k.cluster))
-		k.logger.Fatal("unable to get pod", zap.Error(err))
+		k.logger.Error("unable to get pod", zap.Error(err))
 		return nil, err
 	}
 	k.logger.Info("pod", zap.String("name", pod.Name))
 	return pod, nil
+}
+
+func (k *Kubepod) CreateObject(obj interface{}) error {
+
+	return nil
 }

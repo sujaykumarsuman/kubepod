@@ -114,7 +114,7 @@ type ErrResponse struct {
 	StatusText string `json:"status" example:"Resource not found."`                                         // user-level status message
 	AppCode    int64  `json:"code,omitempty" example:"404"`                                                 // application-specific error code
 	ErrorText  string `json:"error,omitempty" example:"The requested resource was not found on the server"` // application-level error message, for debugging
-} // @name ErrorResponse
+}
 
 // Render implements the github.com/go-chi/render.Renderer interface for ErrResponse
 func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {

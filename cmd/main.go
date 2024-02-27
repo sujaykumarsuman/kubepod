@@ -106,11 +106,6 @@ func main() {
 		logger.Fatal("unable to create kubepod")
 		return
 	}
-	_, err = kp.GetNodes()
-	if err != nil {
-		logger.Fatal("unable to get nodes at start", zap.Error(err))
-		return
-	}
 
 	// start the api server
 	addr := viper.GetString("host") + ":" + viper.GetString("port")
