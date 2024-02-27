@@ -73,15 +73,21 @@ func NewKubepod(ctx context.Context, logger *zap.Logger, arn, clusterName string
 		logger.Fatal("unable to load SDK config", zap.Error(err))
 		return nil
 	}
-	printConfig(logger, cfg)
 	stsSvc := sts.NewFromConfig(cfg)
 	creds := stscreds.NewAssumeRoleProvider(stsSvc, arn)
+	c, err := creds.Retrieve(ctx)
 	if err != nil {
 		logger.Fatal("unable to assume role", zap.Error(err))
 		return nil
+	} else {
+		logger.Debug("Assumed role",
+			zap.Any("AWS_ACCESS_KEY", c.AccessKeyID),
+			zap.Any("AWS_SECRET_ACCESS_KEY", c.SecretAccessKey),
+			zap.Any("AWS_SESSION_TOKEN", c.SessionToken))
 	}
 	cfg.Credentials = aws.NewCredentialsCache(creds)
-	logger.Debug("cfg.credentials", zap.Any("credentials", cfg.Credentials))
+	printConfig(logger, cfg)
+
 	eksClient := eks.NewFromConfig(cfg)
 	clusterDescription, err := eksClient.DescribeCluster(ctx, &eks.DescribeClusterInput{Name: &clusterName})
 	if err != nil {
