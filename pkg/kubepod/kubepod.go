@@ -81,7 +81,7 @@ func NewKubepod(ctx context.Context, logger *zap.Logger, arn, clusterName string
 		return nil
 	}
 	cfg.Credentials = aws.NewCredentialsCache(creds)
-
+	logger.Debug("cfg.credentials", zap.Any("credentials", cfg.Credentials))
 	eksClient := eks.NewFromConfig(cfg)
 	clusterDescription, err := eksClient.DescribeCluster(ctx, &eks.DescribeClusterInput{Name: &clusterName})
 	if err != nil {
