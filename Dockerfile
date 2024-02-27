@@ -16,5 +16,14 @@ FROM alpine:3.18
 # Copy the binary from the builder stage
 COPY --from=builder /kubepod /kubepod
 
+# Install aws-cli, jq, kubectl
+RUN apk add --no-cache \
+    aws-cli \
+    curl \
+    jq \
+    && curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.21.0/bin/linux/amd64/kubectl \
+    && chmod +x ./kubectl \
+    && mv ./kubectl /usr/bin/kubectl
+
 # Set the default command
 CMD ["/kubepod"]

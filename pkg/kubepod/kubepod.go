@@ -3,13 +3,8 @@ package kubepod
 import (
 	"context"
 	"encoding/base64"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
@@ -62,33 +57,7 @@ func newClientset(log *zap.Logger, cluster *types.Cluster) (*kubernetes.Clientse
 	return clientset, nil
 }
 
-func printConfig(logger *zap.Logger, cfg aws.Config) {
-	logger.Debug("cfg.region", zap.String("region", cfg.Region))
-	logger.Debug("cfg.credentials", zap.Any("credentials", cfg.Credentials))
-}
-
-func NewKubepod(ctx context.Context, logger *zap.Logger, arn, clusterName string) *Kubepod {
-	cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(viper.GetString("aws.region")))
-	if err != nil {
-		logger.Fatal("unable to load SDK config", zap.Error(err))
-		return nil
-	}
-	stsSvc := sts.NewFromConfig(cfg)
-	creds := stscreds.NewAssumeRoleProvider(stsSvc, arn)
-	c, err := creds.Retrieve(ctx)
-	if err != nil {
-		logger.Fatal("unable to assume role", zap.Error(err))
-		return nil
-	} else {
-		logger.Debug("Assumed role",
-			zap.Any("AWS_ACCESS_KEY", c.AccessKeyID),
-			zap.Any("AWS_SECRET_ACCESS_KEY", c.SecretAccessKey),
-			zap.Any("AWS_SESSION_TOKEN", c.SessionToken))
-	}
-	cfg.Credentials = aws.NewCredentialsCache(creds)
-	printConfig(logger, cfg)
-
-	eksClient := eks.NewFromConfig(cfg)
+func NewKubepod(ctx context.Context, logger *zap.Logger, eksClient *eks.Client, clusterName string) *Kubepod {
 	clusterDescription, err := eksClient.DescribeCluster(ctx, &eks.DescribeClusterInput{Name: &clusterName})
 	if err != nil {
 		logger.Fatal("unable to describe cluster", zap.Error(err))

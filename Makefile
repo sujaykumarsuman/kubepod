@@ -1,8 +1,8 @@
 DOCKER_REGISTRY ?= docker.io
 REPOSITORY ?= sujaykumarsuman
 IMAGE_NAME ?= kubepod
-IMAGE_VERSION ?= v1.2.0-im-$(shell git rev-parse --short HEAD)
-CHART_VERSION ?= v1.2.0-hc-$(shell git rev-parse --short HEAD)
+IMAGE_VERSION ?= v1.2.1-im-$(shell git rev-parse --short HEAD)
+CHART_VERSION ?= v1.2.1-hc-$(shell git rev-parse --short HEAD)
 
 
 docker-image-exists:
