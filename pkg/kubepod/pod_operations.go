@@ -7,34 +7,7 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (k *Kubepod) GetNodes() (*v1.NodeList, error) {
-	nodes, err := k.CoreV1().Nodes().List(context.Background(), metaV1.ListOptions{})
-	if err != nil {
-		k.logger.Debug("error listing nodes with kubepod",
-			zap.Any("kubepod", k.Clientset),
-			zap.Any("cluster", k.cluster))
-		k.logger.Error("unable to list nodes", zap.Error(err))
-		return nil, err
-	}
-	for _, node := range nodes.Items {
-		k.logger.Info("node", zap.String("name", node.Name))
-	}
-	return nodes, nil
-}
-
-func (k *Kubepod) GetNode(name string) (*v1.Node, error) {
-	node, err := k.CoreV1().Nodes().Get(context.Background(), name, metaV1.GetOptions{})
-	if err != nil {
-		k.logger.Debug("error getting node with kubepod",
-			zap.Any("kubepod", k.Clientset),
-			zap.Any("cluster", k.cluster))
-		k.logger.Error("unable to get node", zap.Error(err))
-		return nil, err
-	}
-	k.logger.Info("node", zap.String("name", node.Name))
-	return node, nil
-}
-
+// GetPods returns a list of pods from the cluster in a namespace using the kubepod client
 func (k *Kubepod) GetPods(namespace string) (*v1.PodList, error) {
 	pods, err := k.CoreV1().Pods(namespace).List(context.Background(), metaV1.ListOptions{})
 	if err != nil {
@@ -50,6 +23,7 @@ func (k *Kubepod) GetPods(namespace string) (*v1.PodList, error) {
 	return pods, nil
 }
 
+// GetPod returns a pod from the cluster in a namespace using the kubepod client
 func (k *Kubepod) GetPod(name, namespace string) (*v1.Pod, error) {
 	pod, err := k.CoreV1().Pods(namespace).Get(context.Background(), name, metaV1.GetOptions{})
 	if err != nil {
@@ -61,9 +35,4 @@ func (k *Kubepod) GetPod(name, namespace string) (*v1.Pod, error) {
 	}
 	k.logger.Info("pod", zap.String("name", pod.Name))
 	return pod, nil
-}
-
-func (k *Kubepod) CreateObject(obj interface{}) error {
-
-	return nil
 }

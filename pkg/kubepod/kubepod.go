@@ -3,12 +3,18 @@ package kubepod
 import (
 	"context"
 	"encoding/base64"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"os"
 	"sigs.k8s.io/aws-iam-authenticator/pkg/token"
 )
 
@@ -71,4 +77,48 @@ func NewKubepod(ctx context.Context, logger *zap.Logger, eksClient *eks.Client, 
 	}
 
 	return &Kubepod{clientset, clusterDescription.Cluster, logger}
+}
+
+// CreateEKSClient creates a new AWS session with the provided ARN and returns the credentials
+func CreateEKSClient(ctx context.Context, logger *zap.Logger, arn string) (*eks.Client, error) {
+	cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(viper.GetString("aws.region")))
+	if err != nil {
+		return nil, err
+	}
+	stsSvc := sts.NewFromConfig(cfg)
+	roleProvider := stscreds.NewAssumeRoleProvider(stsSvc, arn)
+	if err != nil {
+		logger.Fatal("unable to assume role", zap.Error(err))
+		return nil, err
+	} else {
+		creds, err := roleProvider.Retrieve(ctx)
+		if err != nil {
+			logger.Fatal("unable to retrieve credentials", zap.Error(err))
+			return nil, err
+		}
+		setAWSCredsEnv(logger, &creds)
+	}
+	cfg.Credentials = aws.NewCredentialsCache(roleProvider)
+
+	eksClient := eks.NewFromConfig(cfg)
+	return eksClient, nil
+}
+
+// setAWSCredsEnv sets the AWS credentials in the environment
+func setAWSCredsEnv(logger *zap.Logger, creds *aws.Credentials) {
+	if err := os.Setenv("AWS_ACCESS_KEY_ID", creds.AccessKeyID); err != nil {
+		logger.Error("unable to set AWS_ACCESS_KEY_ID", zap.Error(err))
+	} else {
+		logger.Debug("env AWS_ACCESS_KEY_ID set", zap.String("AWS_ACCESS_KEY_ID", creds.AccessKeyID))
+	}
+	if err := os.Setenv("AWS_SECRET_ACCESS_KEY", creds.SecretAccessKey); err != nil {
+		logger.Error("unable to set AWS_SECRET_ACCESS_KEY", zap.Error(err))
+	} else {
+		logger.Debug("env AWS_SECRET_ACCESS_KEY set", zap.String("AWS_SECRET_ACCESS_KEY", creds.SecretAccessKey))
+	}
+	if err := os.Setenv("AWS_SESSION_TOKEN", creds.SessionToken); err != nil {
+		logger.Error("unable to set AWS_SESSION_TOKEN", zap.Error(err))
+	} else {
+		logger.Debug("env AWS_SESSION_TOKEN set", zap.String("AWS_SESSION_TOKEN", creds.SessionToken))
+	}
 }
